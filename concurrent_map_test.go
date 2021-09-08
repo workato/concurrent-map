@@ -2,7 +2,6 @@ package cmap
 
 import (
 	"encoding/json"
-	"hash/fnv"
 	"sort"
 	"strconv"
 	"testing"
@@ -131,11 +130,11 @@ func TestRemoveCb(t *testing.T) {
 	m.Set("elephant", elephant)
 
 	var (
-		mapKey   string
+		mapKey   interface{}
 		mapVal   interface{}
 		wasFound bool
 	)
-	cb := func(key string, val interface{}, exists bool) bool {
+	cb := func(key interface{}, val interface{}, exists bool) bool {
 		mapKey = key
 		mapVal = val
 		wasFound = exists
@@ -351,7 +350,7 @@ func TestIterCb(t *testing.T) {
 
 	counter := 0
 	// Iterate over elements.
-	m.IterCb(func(key string, v interface{}) {
+	m.IterCb(func(key interface{}, v interface{}) {
 		_, ok := v.(Animal)
 		if !ok {
 			t.Error("Expecting an animal object")
@@ -473,7 +472,7 @@ func TestKeys(t *testing.T) {
 }
 
 func TestMInsert(t *testing.T) {
-	animals := map[string]interface{}{
+	animals := map[interface{}]interface{}{
 		"elephant": Animal{"elephant"},
 		"monkey":   Animal{"monkey"},
 	}
@@ -483,20 +482,6 @@ func TestMInsert(t *testing.T) {
 	if m.Count() != 2 {
 		t.Error("map should contain exactly two elements.")
 	}
-}
-
-func TestFnv32(t *testing.T) {
-	key := []byte("ABC")
-
-	hasher := fnv.New32()
-	_, err := hasher.Write(key)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	if fnv32(string(key)) != hasher.Sum32() {
-		t.Errorf("Bundled fnv32 produced %d, expected result from hash/fnv32 is %d", fnv32(string(key)), hasher.Sum32())
-	}
-
 }
 
 func TestUpsert(t *testing.T) {
