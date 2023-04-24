@@ -95,7 +95,7 @@ func (m ConcurrentMap[K, V]) Get(key K) (V, bool) {
 }
 
 // GetCb is a callback executed in a map.GetCb() call, while Lock is held.
-type GetCb[V any] func(v V, exist bool)
+type GetCb[V any] func(v V, exist bool) (V, bool)
 
 // GetCb locks the shard containing the key, retrieves its current value and calls the callback with those params.
 // Returns the element from map under given key.
@@ -105,9 +105,7 @@ func (m ConcurrentMap[K, V]) GetCb(key K, cb GetCb[V]) (V, bool) {
 	shard.RLock()
 	// Get item from shard.
 	val, ok := shard.items[key]
-	if ok {
-		cb(val, ok)
-	}
+	val, ok = cb(val, ok)
 	shard.RUnlock()
 	return val, ok
 }
@@ -323,7 +321,7 @@ func (m ConcurrentMap[K, V]) Keys() []K {
 	return keys
 }
 
-//Reviles ConcurrentMap "private" variables to json marshal.
+// Reviles ConcurrentMap "private" variables to json marshal.
 func (m ConcurrentMap[K, V]) MarshalJSON() ([]byte, error) {
 	// Create a temporary map, which will hold all item spread across shards.
 	tmp := make(map[string]V)
